@@ -1,12 +1,5 @@
-\# Terrarium Server
-
-
+# Terrarium Server
 
 Terrarium Server.
 
-
-
 WIP
-
-
-
