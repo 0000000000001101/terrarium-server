@@ -69,6 +69,6 @@ endif()
 
 add_subdirectory(lib)
 
-# target_link_libraries(TerrariumServer PRIVATE LibraryName)
+target_link_libraries(TerrariumServer PRIVATE spdlog::spdlog)
 
 # TODO: CTest
