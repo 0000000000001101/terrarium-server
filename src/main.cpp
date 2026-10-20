@@ -3,6 +3,8 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 
+#include "Server.hpp"
+
 void initializeSpdlog()
 {
     // Console sink (with color support)
@@ -29,6 +31,17 @@ int main()
 
     spdlog::set_level(spdlog::level::trace);
     spdlog::info("Hello, world!");
+
+    try
+    {
+        Server server;
+        server.Run("127.0.0.1", 8080);
+    }
+    catch (const std::exception& e)
+    {
+        spdlog::error("Server stopped: {}", e.what());
+        return 1;
+    }
 
     return 0;
 }
