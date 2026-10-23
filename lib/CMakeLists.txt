@@ -40,6 +40,10 @@ FetchContent_MakeAvailable(asio)
 
 add_library(asio_target INTERFACE)
 
+set_target_properties(asio_target PROPERTIES
+    CXX_STANDARD 11
+)
+
 target_include_directories(asio_target SYSTEM INTERFACE
     "${asio_SOURCE_DIR}/asio/include"
 )
@@ -67,6 +71,9 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 FetchContent_MakeAvailable(websocketpp)
 
 add_library(websocketpp_headers INTERFACE)
+target_compile_definitions(websocketpp_headers INTERFACE
+    _WEBSOCKETPP_CPP11_TYPE_TRAITS_
+)
 target_include_directories(websocketpp_headers SYSTEM INTERFACE "${websocketpp_SOURCE_DIR}")
 target_link_libraries(websocketpp_headers INTERFACE asio_target)
 add_library(websocketpp::websocketpp ALIAS websocketpp_headers)
