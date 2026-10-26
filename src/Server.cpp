@@ -3,6 +3,7 @@
 
 Server::Server()
 {
+    // TODO: Allow certain logging.
     Endpoint.clear_access_channels(websocketpp::log::alevel::all);
     Endpoint.clear_error_channels(websocketpp::log::elevel::all);
 
