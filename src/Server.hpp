@@ -7,17 +7,17 @@
 
 class Server
 {
-    // using ServerEndpoint = websocketpp::server<websocketpp::config::asio>;
-    // using websocketpp::connection_hdl;
-    // using websocketpp::lib::bind;
-    // using websocketpp::lib::placeholders::_1;
-    // using websocketpp::lib::placeholders::_2;
-
 public:
     Server();
     virtual ~Server();
 
     void Run(const char* ipAddress, std::uint16_t port);
+
+    void OnOpen(websocketpp::connection_hdl connection);
+    void OnFail(websocketpp::connection_hdl connection);
+    void OnClose(websocketpp::connection_hdl connection);
+
+    void OnMessage(websocketpp::connection_hdl connection, websocketpp::server<websocketpp::config::asio>::message_ptr message_ptr);
 
 private:
     websocketpp::server<websocketpp::config::asio> Endpoint;
