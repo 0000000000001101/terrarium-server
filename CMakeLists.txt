@@ -12,7 +12,7 @@ option(TERRARIUM_WARNINGS_AS_ERRORS
 
 option(TERRARIUM_USE_STATIC_MSVC_RUNTIME
     "Use the static MSVC runtime (/MT, /MTd) instead of the dynamic runtime (/MD, /MDd)"
-    OFF
+    ON
 )
 
 # Set before creating targets so it initializes the runtime setting for targets
