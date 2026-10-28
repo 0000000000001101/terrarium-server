@@ -12,7 +12,7 @@ option(TERRARIUM_WARNINGS_AS_ERRORS
 
 option(TERRARIUM_USE_STATIC_MSVC_RUNTIME
     "Use the static MSVC runtime (/MT, /MTd) instead of the dynamic runtime (/MD, /MDd)"
-    OFF
+    ON
 )
 
 # Set before creating targets so it initializes the runtime setting for targets
@@ -25,6 +25,8 @@ endif()
 
 add_executable(TerrariumServer
     src/main.cpp
+    src/Server.cpp
+    src/Server.hpp
 )
 
 target_include_directories(TerrariumServer PRIVATE
@@ -70,5 +72,7 @@ endif()
 add_subdirectory(lib)
 
 target_link_libraries(TerrariumServer PRIVATE spdlog::spdlog)
+target_link_libraries(TerrariumServer PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(TerrariumServer PRIVATE websocketpp::websocketpp)
 
 # TODO: CTest
