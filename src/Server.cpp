@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include <spdlog/spdlog.h>
+#include <nlohmann/json.hpp>
 
 Server::Server()
 {
@@ -199,4 +200,86 @@ void Server::OnMessage(websocketpp::connection_hdl connection, websocketpp::serv
     }
 
     spdlog::info("Message recieved!\n\tIP: `{}`\n\tUser-Agent: `{}`\n\tResource: {}\n\tMessage:\n{}\n", connectionPtr->get_remote_endpoint(), userAgent, connectionPtr->get_resource(), message_ptr->get_payload());
+
+    // TODO: Message routing.
+    /*
+    Idea:
+    - Server gets message
+    - Server parses message as JSON. If fails, discard message.
+    - Server checks for "message_type" key. If fails, discard message.
+    - Server routes certain "message_type" values to different TerrariumServer class functions
+    - The TerrariumServer class then does stuff, blah blah magic, then can call a Server class function to send messages to all clients.
+
+    Considerations:
+    - Hmm, maybe the if/else train for "message_type" should be handled by TerrariumServer.
+    - Is OnMessage blocking? I think so. I fear it may be smart to have a networking thread, and a game thread.
+      With both an incoming queue for the game to handle recieved messages, and an outgoing queue for the game to send messages.
+      But.. how would we do that? I guess TerrariumServer runs on the main thread, and it creates the networking child thread.
+      I smell some small refactoring.
+    - I feel like we could be converting message_type to an enum and then use a switch case. But converting message_type to an enum
+      for only a switch case... sounds wasteful.
+    - I should really figure out how to send messages back to the client, and to send messages to all clients. Eek!
+    */
+    try
+    {
+        nlohmann::json json = nlohmann::json::parse(message_ptr->get_payload());
+
+        std::string message_type = json.at("message_type").get<std::string>();
+
+        if (message_type == "glass_selected")
+        {
+            // terrarium.OnGlassSelected(json);
+        }
+        else if (message_type == "asset_created")
+        {
+            // terrarium.OnAssetCreated(json);
+        }
+        else if (message_type == "asset_deleted")
+        {
+            // terrarium.OnAssetDeleted(json);
+        }
+        else if (message_type == "asset_layer_reordered")
+        {
+            // terrarium.OnLayerReorder(json);
+        }
+        else if (message_type == "asset_moved")
+        {
+            // terrarium.OnAssetMoved(json);
+        }
+        else if (message_type == "asset_resized")
+        {
+            // terrarium.OnAssetResized(json);
+        }
+        else if (message_type == "asset_rotated")
+        {
+            // terrarium.OnAssetRotated(json);
+        }
+        // else if (message_type == "")
+        // {
+        //     // terrarium.On(json);
+        // }
+        else
+        {
+            spdlog::warn("Don't know how to handle \"message_type\" of \"{}\"! Discarding...", message_type);
+        }
+    }
+    catch(const nlohmann::json::parse_error& e)
+    {
+        spdlog::warn("JSON parse error:\n\t\"{}\"", e.what());
+        spdlog::warn("Could not parse message as JSON! Discarding message...");
+    }
+    catch(const std::out_of_range& e)
+    {
+        spdlog::warn("std::out_of_range:\n\t\"{}\"", e.what());
+        spdlog::warn("JSON message does not have required \"message_type\" key! Can not route! Discarding...");
+    }
+    catch(const nlohmann::json::type_error& e)
+    {
+        spdlog::warn("nlohmann::json::type_error:\n\t\"{}\"", e.what());
+        spdlog::warn("\"message_type\" was not a string! Discarding...");
+    }
+    catch(const std::exception& e)
+    {
+        spdlog::warn("std::exception:\n\t\"{}\"", e.what());
+    }
 }
