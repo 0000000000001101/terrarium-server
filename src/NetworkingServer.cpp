@@ -236,44 +236,10 @@ void NetworkingServer::OnMessage(websocketpp::connection_hdl connection, websock
     {
         nlohmann::json json = nlohmann::json::parse(message_ptr->get_payload());
 
+        // Yes, we are forcing the "message_type" key to exist on the networking side.
         std::string message_type = json.at("message_type").get<std::string>();
 
-        if (message_type == "glass_selected")
-        {
-            // terrarium.OnGlassSelected(json);
-        }
-        else if (message_type == "asset_created")
-        {
-            // terrarium.OnAssetCreated(json);
-        }
-        else if (message_type == "asset_deleted")
-        {
-            // terrarium.OnAssetDeleted(json);
-        }
-        else if (message_type == "asset_layer_reordered")
-        {
-            // terrarium.OnLayerReorder(json);
-        }
-        else if (message_type == "asset_moved")
-        {
-            // terrarium.OnAssetMoved(json);
-        }
-        else if (message_type == "asset_resized")
-        {
-            // terrarium.OnAssetResized(json);
-        }
-        else if (message_type == "asset_rotated")
-        {
-            // terrarium.OnAssetRotated(json);
-        }
-        // else if (message_type == "")
-        // {
-        //     // terrarium.On(json);
-        // }
-        else
-        {
-            spdlog::warn("Don't know how to handle \"message_type\" of \"{}\"! Discarding...", message_type);
-        }
+        // TODO: Add message to queue.
     }
     catch(const nlohmann::json::parse_error& e)
     {

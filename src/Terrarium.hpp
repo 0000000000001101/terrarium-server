@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NetworkingServer.hpp"
+#include "ThreadSafeQueue.hpp"
 
 class Terrarium
 {
@@ -12,4 +13,6 @@ public:
 
 private:
     NetworkingServer NetworkServer;
+    ThreadSafeQueue<IncomingNetworkPacket> IncomingQueue;
+    ThreadSafeQueue<OutgoingNetworkPacket> OutgoingQueue;
 };
