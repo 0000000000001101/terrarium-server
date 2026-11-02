@@ -27,6 +27,8 @@ add_executable(TerrariumServer
     src/main.cpp
     src/Server.cpp
     src/Server.hpp
+    src/Terrarium.cpp
+    src/Terrarium.hpp
 )
 
 target_include_directories(TerrariumServer PRIVATE

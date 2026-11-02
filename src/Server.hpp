@@ -12,6 +12,7 @@ public:
     virtual ~Server();
 
     void Run(const char* ipAddress, std::uint16_t port);
+    void Stop();
 
     void OnOpen(websocketpp::connection_hdl connection);
     void OnFail(websocketpp::connection_hdl connection);

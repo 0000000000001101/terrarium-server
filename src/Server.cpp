@@ -50,10 +50,20 @@ void Server::Run(const char* ipAddress, std::uint16_t port)
     // Queue a command to start accepting connections.
     Endpoint.start_accept();
 
-    // Runs the ASIO event loop, processes network stuff and dispatches things to callbacks. This is a blocking call.
+    // Runs the ASIO event loop, processes network stuff and dispatches things to callbacks.
+    // This is a blocking call.
     Endpoint.run();
+}
 
-    // If we get here we either exited cleanly, or encountered some problem.
+void Server::Stop()
+{
+    Endpoint.stop_listening();
+
+    // TODO: Close all connections? stop_listening does not close them.
+    // Check WebSocket++ docs.
+    // ...
+
+    Endpoint.stop();
 }
 
 void Server::OnOpen(websocketpp::connection_hdl connection)
