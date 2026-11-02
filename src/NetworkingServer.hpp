@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ThreadSafeQueue.hpp"
+
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
 
@@ -10,8 +12,8 @@
 class NetworkingServer
 {
 public:
-    NetworkingServer();
-    virtual ~NetworkingServer();
+    NetworkingServer(ThreadSafeQueue<IncomingNetworkPacket>& IncomingQueue, ThreadSafeQueue<OutgoingNetworkPacket>& OutgoingQueue);
+    virtual ~NetworkingServer() = default;
 
     void Run(const char* ipAddress, const std::uint16_t& port);
     void Stop();
@@ -27,4 +29,7 @@ public:
 private:
     websocketpp::server<websocketpp::config::asio> Endpoint;
     std::set<websocketpp::connection_hdl, std::owner_less<websocketpp::connection_hdl>> ActiveConnections;
+
+    ThreadSafeQueue<IncomingNetworkPacket>& IncomingQueue;
+    ThreadSafeQueue<OutgoingNetworkPacket>& OutgoingQueue;
 };

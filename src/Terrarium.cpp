@@ -2,7 +2,12 @@
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
 
-void Terrarium::Run(const char* ipAddress, const std::uint16_t& port)
+Terrarium::Terrarium()
+    : NetworkServer(IncomingQueue, OutgoingQueue)
+{
+}
+
+void Terrarium::Run(const char *ipAddress, const std::uint16_t &port)
 {
     // Launch networking worker thread.
     // std::thread networkWorker(&Server::Run, &NetworkServer);
@@ -24,8 +29,7 @@ void Terrarium::Run(const char* ipAddress, const std::uint16_t& port)
         // spdlog::trace("Tick!");
 
         // Process all incoming messages.
-        // TODO: Loop over incoming queue.
-        //while (/* messages in queue */)
+        while (std::optional<IncomingNetworkPacket> incomingPacket = IncomingQueue.Pop())
         {
             // Depending on the type of message, there are a few ways the server may respond:
             // - message_type is invalid:
@@ -39,6 +43,13 @@ void Terrarium::Run(const char* ipAddress, const std::uint16_t& port)
             //     - Server sends the full scene to a single client.
             //
             // Those messages the server wants to send, will be added to an outgoing queue.
+
+            // Return to sender.
+            OutgoingNetworkPacket outgoingPacket;
+            outgoingPacket.Connection = incomingPacket->Connection;
+            outgoingPacket.Payload = incomingPacket->Payload;
+            outgoingPacket.IsBroadcast = true;
+            OutgoingQueue.Push(outgoingPacket);
         }
 
         // Terrarium Server logic.

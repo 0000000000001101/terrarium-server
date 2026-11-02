@@ -2,7 +2,8 @@
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
 
-NetworkingServer::NetworkingServer()
+NetworkingServer::NetworkingServer(ThreadSafeQueue<IncomingNetworkPacket>& IncomingQueue, ThreadSafeQueue<OutgoingNetworkPacket>& OutgoingQueue)
+    : IncomingQueue(IncomingQueue), OutgoingQueue(OutgoingQueue)
 {
     // TODO: Allow certain logging.
     Endpoint.clear_access_channels(websocketpp::log::alevel::all);
@@ -20,10 +21,6 @@ NetworkingServer::NetworkingServer()
     // - Pong Handler (to trace log it)
     // - Pong Timeout Handler (to trace log it)
     // - HTTP Handler (to 301 or 308 it to the Terrarium website)
-}
-
-NetworkingServer::~NetworkingServer()
-{
 }
 
 void NetworkingServer::Run(const char* ipAddress, const std::uint16_t& port)
@@ -239,7 +236,11 @@ void NetworkingServer::OnMessage(websocketpp::connection_hdl connection, websock
         // Yes, we are forcing the "message_type" key to exist on the networking side.
         std::string message_type = json.at("message_type").get<std::string>();
 
-        // TODO: Add message to queue.
+        // Package the message and push it to a thread-safe queue for another thread.
+        IncomingNetworkPacket packet;
+        packet.Connection = connection;
+        packet.Payload = message_ptr->get_payload();
+        IncomingQueue.Push(packet);
     }
     catch(const nlohmann::json::parse_error& e)
     {

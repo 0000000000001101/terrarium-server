@@ -22,8 +22,23 @@ template <typename T>
 class ThreadSafeQueue
 {
 public:
-    void Push(T object);
-    std::optional<T> Pop();
+    void Push(T object)
+    {
+        std::lock_guard<std::mutex> lock(QueueMutex);
+        InternalQueue.push(std::move(object));
+    }
+
+    std::optional<T> Pop()
+    {
+        std::lock_guard<std::mutex> lock(QueueMutex);
+
+        if (InternalQueue.empty())
+            return std::nullopt;
+
+        T object = std::move(InternalQueue.front());
+        InternalQueue.pop();
+        return object;
+    }
 
 private:
     std::mutex QueueMutex;
