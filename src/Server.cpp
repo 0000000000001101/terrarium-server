@@ -26,7 +26,7 @@ Server::~Server()
 {
 }
 
-void Server::Run(const char* ipAddress, std::uint16_t port)
+void Server::Run(const char* ipAddress, const std::uint16_t& port)
 {
     websocketpp::lib::asio::error_code addressError;
     const auto address = websocketpp::lib::asio::ip::make_address(ipAddress, addressError);

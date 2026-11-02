@@ -8,7 +8,7 @@ public:
     Terrarium() = default;
     virtual ~Terrarium() = default;
 
-    void Run();
+    void Run(const char* ipAddress, const std::uint16_t& port);
 
 private:
     Server NetworkServer;

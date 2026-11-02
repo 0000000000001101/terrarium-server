@@ -2,14 +2,14 @@
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
 
-void Terrarium::Run()
+void Terrarium::Run(const char* ipAddress, const std::uint16_t& port)
 {
     // Launch networking worker thread.
     // std::thread networkWorker(&Server::Run, &NetworkServer);
     std::thread networkWorker(
-        [&]()
+        [this, &ipAddress, &port]()
         {
-            NetworkServer.Run("127.0.0.1", 8013);
+            NetworkServer.Run(ipAddress, port);
         }
     );
 
@@ -21,6 +21,7 @@ void Terrarium::Run()
     while (serverRunning)
     {
         auto tickStart = std::chrono::steady_clock::now();
+        // spdlog::trace("Tick!");
 
         // Process all incoming messages.
         // TODO: Loop over incoming queue.
