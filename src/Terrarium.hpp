@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Server.hpp"
+#include "NetworkingServer.hpp"
 
 class Terrarium
 {
@@ -11,5 +11,5 @@ public:
     void Run(const char* ipAddress, const std::uint16_t& port);
 
 private:
-    Server NetworkServer;
+    NetworkingServer NetworkServer;
 };
