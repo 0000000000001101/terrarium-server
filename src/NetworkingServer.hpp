@@ -5,11 +5,11 @@
 
 #include <nlohmann/json.hpp>
 
-class Server
+class NetworkingServer
 {
 public:
-    Server();
-    virtual ~Server();
+    NetworkingServer();
+    virtual ~NetworkingServer();
 
     void Run(const char* ipAddress, const std::uint16_t& port);
     void Stop();

@@ -1,8 +1,8 @@
-#include "Server.hpp"
+#include "NetworkingServer.hpp"
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
 
-Server::Server()
+NetworkingServer::NetworkingServer()
 {
     // TODO: Allow certain logging.
     Endpoint.clear_access_channels(websocketpp::log::alevel::all);
@@ -11,10 +11,10 @@ Server::Server()
     // Initializes the networking backend.
     Endpoint.init_asio();
 
-    Endpoint.set_open_handler(websocketpp::lib::bind(&Server::OnOpen, this, websocketpp::lib::placeholders::_1));
-    Endpoint.set_fail_handler(websocketpp::lib::bind(&Server::OnFail, this, websocketpp::lib::placeholders::_1));
-    Endpoint.set_close_handler(websocketpp::lib::bind(&Server::OnClose, this, websocketpp::lib::placeholders::_1));
-    Endpoint.set_message_handler(websocketpp::lib::bind(&Server::OnMessage, this, websocketpp::lib::placeholders::_1, websocketpp::lib::placeholders::_2));
+    Endpoint.set_open_handler(websocketpp::lib::bind(&NetworkingServer::OnOpen, this, websocketpp::lib::placeholders::_1));
+    Endpoint.set_fail_handler(websocketpp::lib::bind(&NetworkingServer::OnFail, this, websocketpp::lib::placeholders::_1));
+    Endpoint.set_close_handler(websocketpp::lib::bind(&NetworkingServer::OnClose, this, websocketpp::lib::placeholders::_1));
+    Endpoint.set_message_handler(websocketpp::lib::bind(&NetworkingServer::OnMessage, this, websocketpp::lib::placeholders::_1, websocketpp::lib::placeholders::_2));
     // TODO: More callbacks. https://docs.websocketpp.org/reference_8handlers.html
     // - Ping Handler (to trace log it)
     // - Pong Handler (to trace log it)
@@ -22,11 +22,11 @@ Server::Server()
     // - HTTP Handler (to 301 or 308 it to the Terrarium website)
 }
 
-Server::~Server()
+NetworkingServer::~NetworkingServer()
 {
 }
 
-void Server::Run(const char* ipAddress, const std::uint16_t& port)
+void NetworkingServer::Run(const char* ipAddress, const std::uint16_t& port)
 {
     websocketpp::lib::asio::error_code addressError;
     const auto address = websocketpp::lib::asio::ip::make_address(ipAddress, addressError);
@@ -55,7 +55,7 @@ void Server::Run(const char* ipAddress, const std::uint16_t& port)
     Endpoint.run();
 }
 
-void Server::Stop()
+void NetworkingServer::Stop()
 {
     Endpoint.stop_listening();
 
@@ -66,25 +66,25 @@ void Server::Stop()
     Endpoint.stop();
 }
 
-void Server::OnOpen(websocketpp::connection_hdl connection)
+void NetworkingServer::OnOpen(websocketpp::connection_hdl connection)
 {
     websocketpp::lib::error_code error;
     const auto connectionPtr = Endpoint.get_con_from_hdl(connection, error);
     if (error)
     {
-        spdlog::warn("Server::OnOpen(): unable to access connection: {}", error.message());
+        spdlog::warn("NetworkingServer::OnOpen(): unable to access connection: {}", error.message());
         return;
     }
 
     const auto& request = connectionPtr->get_request();
     spdlog::trace(
-        "Server::OnOpen(): remoteEndpoint={} resource='{}' method='{}' uri='{}' version='{}'",
+        "NetworkingServer::OnOpen(): remoteEndpoint={} resource='{}' method='{}' uri='{}' version='{}'",
         connectionPtr->get_remote_endpoint(), connectionPtr->get_resource(), request.get_method(), request.get_uri(), request.get_version()
     );
 
     for (const auto& header : request.get_headers())
     {
-        spdlog::trace("Server::OnOpen(): header '{}': '{}'", header.first, header.second);
+        spdlog::trace("NetworkingServer::OnOpen(): header '{}': '{}'", header.first, header.second);
     }
 
 
@@ -102,25 +102,25 @@ void Server::OnOpen(websocketpp::connection_hdl connection)
     spdlog::info("Client connected.\n\tIP: `{}`\n\tUser-Agent: `{}`\n\tResource: `{}`\n", connectionPtr->get_remote_endpoint(), userAgent, connectionPtr->get_resource());
 }
 
-void Server::OnFail(websocketpp::connection_hdl connection)
+void NetworkingServer::OnFail(websocketpp::connection_hdl connection)
 {
     websocketpp::lib::error_code error;
     const auto connectionPtr = Endpoint.get_con_from_hdl(connection, error);
     if (error)
     {
-        spdlog::warn("Server::OnFail(): unable to access connection: {}", error.message());
+        spdlog::warn("NetworkingServer::OnFail(): unable to access connection: {}", error.message());
         return;
     }
 
     const auto& request = connectionPtr->get_request();
     spdlog::trace(
-        "Server::OnFail(): remoteEndpoint={} resource='{}' method='{}' uri='{}' version='{}'",
+        "NetworkingServer::OnFail(): remoteEndpoint={} resource='{}' method='{}' uri='{}' version='{}'",
         connectionPtr->get_remote_endpoint(), connectionPtr->get_resource(), request.get_method(), request.get_uri(), request.get_version()
     );
 
     for (const auto& header : request.get_headers())
     {
-        spdlog::trace("Server::OnFail(): header '{}': '{}'", header.first, header.second);
+        spdlog::trace("NetworkingServer::OnFail(): header '{}': '{}'", header.first, header.second);
     }
 
 
@@ -138,25 +138,25 @@ void Server::OnFail(websocketpp::connection_hdl connection)
     spdlog::info("Client failed to connect.\n\tIP: `{}`\n\tUser-Agent: `{}`\n\tResource: `{}`\n", connectionPtr->get_remote_endpoint(), userAgent, connectionPtr->get_resource());
 }
 
-void Server::OnClose(websocketpp::connection_hdl connection)
+void NetworkingServer::OnClose(websocketpp::connection_hdl connection)
 {
     websocketpp::lib::error_code error;
     const auto connectionPtr = Endpoint.get_con_from_hdl(connection, error);
     if (error)
     {
-        spdlog::warn("Server::OnClose(): unable to access connection: {}", error.message());
+        spdlog::warn("NetworkingServer::OnClose(): unable to access connection: {}", error.message());
         return;
     }
 
     const auto& request = connectionPtr->get_request();
     spdlog::trace(
-        "Server::OnClose(): remoteEndpoint={} resource='{}' method='{}' uri='{}' version='{}'",
+        "NetworkingServer::OnClose(): remoteEndpoint={} resource='{}' method='{}' uri='{}' version='{}'",
         connectionPtr->get_remote_endpoint(), connectionPtr->get_resource(), request.get_method(), request.get_uri(), request.get_version()
     );
 
     for (const auto& header : request.get_headers())
     {
-        spdlog::trace("Server::OnClose(): header '{}': '{}'", header.first, header.second);
+        spdlog::trace("NetworkingServer::OnClose(): header '{}': '{}'", header.first, header.second);
     }
 
 
@@ -174,13 +174,13 @@ void Server::OnClose(websocketpp::connection_hdl connection)
     spdlog::info("Connection closed.\n\tIP: `{}`\n\tUser-Agent: `{}`\n\tResource: `{}`\n", connectionPtr->get_remote_endpoint(), userAgent, connectionPtr->get_resource());
 }
 
-void Server::OnMessage(websocketpp::connection_hdl connection, websocketpp::server<websocketpp::config::asio>::message_ptr message_ptr)
+void NetworkingServer::OnMessage(websocketpp::connection_hdl connection, websocketpp::server<websocketpp::config::asio>::message_ptr message_ptr)
 {
     websocketpp::lib::error_code error;
     const auto connectionPtr = Endpoint.get_con_from_hdl(connection, error);
     if (error)
     {
-        spdlog::warn("Server::OnMessage(): unable to access connection: {}", error.message());
+        spdlog::warn("NetworkingServer::OnMessage(): unable to access connection: {}", error.message());
         return;
     }
 
@@ -188,13 +188,13 @@ void Server::OnMessage(websocketpp::connection_hdl connection, websocketpp::serv
 
     const auto& request = connectionPtr->get_request();
     spdlog::trace(
-        "Server::OnMessage(): remoteEndpoint={} resource='{}' method='{}' uri='{}' version='{}'",
+        "NetworkingServer::OnMessage(): remoteEndpoint={} resource='{}' method='{}' uri='{}' version='{}'",
         remoteEndpoint, connectionPtr->get_resource(), request.get_method(), request.get_uri(), request.get_version()
     );
 
     for (const auto& header : request.get_headers())
     {
-        spdlog::trace("Server::OnMessage(): header '{}': '{}'", header.first, header.second);
+        spdlog::trace("NetworkingServer::OnMessage(): header '{}': '{}'", header.first, header.second);
     }
 
 
@@ -214,11 +214,11 @@ void Server::OnMessage(websocketpp::connection_hdl connection, websocketpp::serv
     // TODO: Message routing.
     /*
     Idea:
-    - Server gets message
-    - Server parses message as JSON. If fails, discard message.
-    - Server checks for "message_type" key. If fails, discard message.
-    - Server routes certain "message_type" values to different TerrariumServer class functions
-    - The TerrariumServer class then does stuff, blah blah magic, then can call a Server class function to send messages to all clients.
+    - NetworkingServer gets message
+    - NetworkingServer parses message as JSON. If fails, discard message.
+    - NetworkingServer checks for "message_type" key. If fails, discard message.
+    - NetworkingServer routes certain "message_type" values to different TerrariumServer class functions
+    - The TerrariumServer class then does stuff, blah blah magic, then can call a NetworkingServer class function to send messages to all clients.
 
     Considerations:
     - Hmm, maybe the if/else train for "message_type" should be handled by TerrariumServer.
