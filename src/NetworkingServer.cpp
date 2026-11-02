@@ -99,6 +99,7 @@ void NetworkingServer::OnOpen(websocketpp::connection_hdl connection)
         spdlog::debug("No User-Agent in connection! ({})", e.what());
     }
 
+    ActiveConnections.insert(connection);
     spdlog::info("Client connected.\n\tIP: `{}`\n\tUser-Agent: `{}`\n\tResource: `{}`\n", connectionPtr->get_remote_endpoint(), userAgent, connectionPtr->get_resource());
 }
 
@@ -171,6 +172,7 @@ void NetworkingServer::OnClose(websocketpp::connection_hdl connection)
         spdlog::debug("No User-Agent in connection! ({})", e.what());
     }
 
+    ActiveConnections.erase(connection);
     spdlog::info("Connection closed.\n\tIP: `{}`\n\tUser-Agent: `{}`\n\tResource: `{}`\n", connectionPtr->get_remote_endpoint(), userAgent, connectionPtr->get_resource());
 }
 
@@ -291,5 +293,56 @@ void NetworkingServer::OnMessage(websocketpp::connection_hdl connection, websock
     catch(const std::exception& e)
     {
         spdlog::warn("std::exception:\n\t\"{}\"", e.what());
+    }
+}
+
+void NetworkingServer::SendMessage(websocketpp::connection_hdl connection, const std::string &message)
+{
+    websocketpp::lib::error_code error;
+    const auto connectionPtr = Endpoint.get_con_from_hdl(connection, error);
+    if (error)
+    {
+        spdlog::warn("NetworkingServer::SendMessage(): Connection is no longer valid!! It was not cleaned up? ({})", error.message());
+        return;
+    }
+
+    spdlog::trace("Sending message to {} payload: {}", connectionPtr->get_remote_endpoint(), message);
+    try
+    {
+        Endpoint.send(connection, message, websocketpp::frame::opcode::text);
+    }
+    catch(const websocketpp::exception& e)
+    {
+        spdlog::warn("Failed to send message!: {}", e.what());
+    }
+    catch(const std::exception& e)
+    {
+        spdlog::warn(e.what());
+    }
+}
+
+void NetworkingServer::BroadcastMessage(const std::string &message, std::optional<websocketpp::connection_hdl> excludeConnection)
+{
+    if (excludeConnection.has_value())
+    {
+        websocketpp::lib::error_code error;
+        const auto connectionPtr = Endpoint.get_con_from_hdl(excludeConnection.value(), error);
+        if (error)
+        {
+            spdlog::warn("NetworkingServer::SendMessage(): Connection is no longer valid!! It was not cleaned up? ({})", error.message());
+            return;
+        }
+        spdlog::trace("Broadcasting to all, except for `{}`.", connectionPtr->get_remote_endpoint());
+    }
+    else
+        spdlog::trace("Broadcasting to all.");
+
+    for (const websocketpp::connection_hdl& connection : ActiveConnections)
+    {
+        // If there is a connection to exclude, compare both weak_ptr's "control block" to see if they have the same management metadata or smt smt. If so, skip/exclude.
+        if (excludeConnection.has_value() && !excludeConnection.value().owner_before(connection) && !connection.owner_before(excludeConnection.value()))
+            continue;
+
+        SendMessage(connection, message);
     }
 }
