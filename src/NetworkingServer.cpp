@@ -210,57 +210,11 @@ void NetworkingServer::OnMessage(websocketpp::connection_hdl connection, websock
 
     spdlog::info("Message recieved!\n\tIP: `{}`\n\tUser-Agent: `{}`\n\tResource: {}\n\tMessage:\n{}\n", connectionPtr->get_remote_endpoint(), userAgent, connectionPtr->get_resource(), message_ptr->get_payload());
 
-    // TODO: Message routing.
-    /*
-    Idea:
-    - NetworkingServer gets message
-    - NetworkingServer parses message as JSON. If fails, discard message.
-    - NetworkingServer checks for "message_type" key. If fails, discard message.
-    - NetworkingServer routes certain "message_type" values to different TerrariumServer class functions
-    - The TerrariumServer class then does stuff, blah blah magic, then can call a NetworkingServer class function to send messages to all clients.
-
-    Considerations:
-    - Hmm, maybe the if/else train for "message_type" should be handled by TerrariumServer.
-    - Is OnMessage blocking? I think so. I fear it may be smart to have a networking thread, and a game thread.
-      With both an incoming queue for the game to handle recieved messages, and an outgoing queue for the game to send messages.
-      But.. how would we do that? I guess TerrariumServer runs on the main thread, and it creates the networking child thread.
-      I smell some small refactoring.
-    - I feel like we could be converting message_type to an enum and then use a switch case. But converting message_type to an enum
-      for only a switch case... sounds wasteful.
-    - I should really figure out how to send messages back to the client, and to send messages to all clients. Eek!
-    */
-    try
-    {
-        nlohmann::json json = nlohmann::json::parse(message_ptr->get_payload());
-
-        // Yes, we are forcing the "message_type" key to exist on the networking side.
-        std::string message_type = json.at("message_type").get<std::string>();
-
-        // Package the message and push it to a thread-safe queue for another thread.
-        IncomingNetworkPacket packet;
-        packet.Connection = connection;
-        packet.Payload = message_ptr->get_payload();
-        IncomingQueue.Push(packet);
-    }
-    catch(const nlohmann::json::parse_error& e)
-    {
-        spdlog::warn("JSON parse error:\n\t\"{}\"", e.what());
-        spdlog::warn("Could not parse message as JSON! Discarding message...");
-    }
-    catch(const std::out_of_range& e)
-    {
-        spdlog::warn("std::out_of_range:\n\t\"{}\"", e.what());
-        spdlog::warn("JSON message does not have required \"message_type\" key! Can not route! Discarding...");
-    }
-    catch(const nlohmann::json::type_error& e)
-    {
-        spdlog::warn("nlohmann::json::type_error:\n\t\"{}\"", e.what());
-        spdlog::warn("\"message_type\" was not a string! Discarding...");
-    }
-    catch(const std::exception& e)
-    {
-        spdlog::warn("std::exception:\n\t\"{}\"", e.what());
-    }
+    // Package the message and push it to a thread-safe queue for another thread.
+    IncomingNetworkPacket packet;
+    packet.Connection = connection;
+    packet.Payload = message_ptr->get_payload();
+    IncomingQueue.Push(packet);
 }
 
 void NetworkingServer::SendMessage(websocketpp::connection_hdl connection, const std::string &message)
@@ -311,5 +265,23 @@ void NetworkingServer::BroadcastMessage(const std::string &message, std::optiona
             continue;
 
         SendMessage(connection, message);
+    }
+}
+
+void NetworkingServer::RequestQueueFlush()
+{
+    spdlog::trace("Requesting ASIO to flush outgoing queue.");
+    Endpoint.get_io_service().post([this]() { ProcessOutgoingQueue(); });
+}
+
+void NetworkingServer::ProcessOutgoingQueue()
+{
+    spdlog::trace("Flushing outgoing message queue.");
+    while (auto packet = OutgoingQueue.Pop())
+    {
+        if (packet->IsBroadcast)
+            BroadcastMessage(packet->Payload, packet->Connection);
+        else
+            SendMessage(packet->Connection.value(), packet->Payload);
     }
 }

@@ -31,26 +31,68 @@ void Terrarium::Run(const char *ipAddress, const std::uint16_t &port)
         // Process all incoming messages.
         while (std::optional<IncomingNetworkPacket> incomingPacket = IncomingQueue.Pop())
         {
-            // Depending on the type of message, there are a few ways the server may respond:
-            // - message_type is invalid:
-            //   - Discard message, log it. Don't do anything else.
-            // - message_type is valid:
-            //   - Is it something that affects state?
-            //     - Server saves it to scene state.
-            //   - Is it something everyone should know?
-            //     - Server sends it to everyone.
-            //   - Is it a request for the current scene?
-            //     - Server sends the full scene to a single client.
-            //
-            // Those messages the server wants to send, will be added to an outgoing queue.
+            try
+            {
+                nlohmann::json json = nlohmann::json::parse(incomingPacket->Payload);
+                std::string message_type = json.at("message_type").get<std::string>();
 
-            // Return to sender.
-            OutgoingNetworkPacket outgoingPacket;
-            outgoingPacket.Connection = incomingPacket->Connection;
-            outgoingPacket.Payload = incomingPacket->Payload;
-            outgoingPacket.IsBroadcast = true;
-            OutgoingQueue.Push(outgoingPacket);
+                if (message_type == "meow")
+                {
+                    OutgoingNetworkPacket outgoingPacket;
+                    outgoingPacket.Connection = incomingPacket->Connection;
+                    outgoingPacket.Payload = "meow :3";
+                    OutgoingQueue.Push(outgoingPacket);
+                }
+                else if (message_type == "request_state")
+                {
+                    // TODO: Send state.
+                }
+                // These remaining message types are the ones to broadcast to all but sender.
+                else if (
+                    message_type == "glass_selected" ||
+                    message_type == "asset_created" ||
+                    message_type == "asset_deleted" ||
+                    message_type == "asset_layer_reordered" ||
+                    message_type == "asset_moved" ||
+                    message_type == "asset_resized" ||
+                    message_type == "asset_rotated"
+                )
+                {
+                    // TODO: Update state of tracked assets/entities.
+
+                    OutgoingNetworkPacket outgoingPacket;
+                    outgoingPacket.Connection = incomingPacket->Connection;
+                    outgoingPacket.Payload = incomingPacket->Payload;
+                    outgoingPacket.IsBroadcast = true;
+                    OutgoingQueue.Push(outgoingPacket);
+                }
+                else
+                {
+                    spdlog::warn("Invalid message_type recieved! How do I handle \"{}\"?", message_type);
+                }
+            }
+            catch(const nlohmann::json::parse_error& e)
+            {
+                spdlog::warn("JSON parse error:\n\t\"{}\"", e.what());
+                spdlog::warn("Could not parse message as JSON! Discarding message...");
+            }
+            catch(const std::out_of_range& e)
+            {
+                spdlog::warn("std::out_of_range:\n\t\"{}\"", e.what());
+                spdlog::warn("JSON message did not have a required key! Discarding...");
+            }
+            catch(const nlohmann::json::type_error& e)
+            {
+                spdlog::warn("nlohmann::json::type_error:\n\t\"{}\"", e.what());
+                spdlog::warn("A key returned an unexpected value type! Discarding...");
+            }
+            catch(const std::exception& e)
+            {
+                spdlog::warn("std::exception:\n\t\"{}\"", e.what());
+            }
         }
+        // After we queue up our messages, we should tell the server to flush it, to send our messages. Messages are batched! :D
+        NetworkServer.RequestQueueFlush();
 
         // Terrarium Server logic.
         // So after dealing with all messages this tick, what do we need to do?
