@@ -45,7 +45,54 @@ void Terrarium::Run(const char *ipAddress, const std::uint16_t &port)
                 }
                 else if (message_type == "request_state")
                 {
-                    // TODO: Send state.
+                    // TODO: Send real state.
+
+                    // Test state.
+                    if (true)
+                    {
+                        {
+                            OutgoingNetworkPacket outgoingPacket;
+                            outgoingPacket.Connection = incomingPacket->Connection;
+                            outgoingPacket.Payload = "{\"description\":\"null\",\"image_path\":\"res://assets/animals/angry hedgehog.png\",\"layer\":0,\"message_type\":\"asset_created\",\"pivot_point\":{\"x\":469.229614257813,\"y\":141.178894042969},\"position\":{\"x\":396.729125976563,\"y\":68.6788330078125},\"rotation\":0,\"size\":{\"x\":145.0009765625,\"y\":145.000122070313},\"type\":\"2f6075b6-3303-6755-68e1-e89f6b0113f6\",\"uuid\":\"2f6075b6-3303-6755-68e1-e89f6b0113f6\"}";
+                            OutgoingQueue.Push(outgoingPacket);
+                        }
+                        {
+                            OutgoingNetworkPacket outgoingPacket;
+                            outgoingPacket.Connection = incomingPacket->Connection;
+                            outgoingPacket.Payload = "{\"description\":\"null\",\"image_path\":\"res://assets/animals/alabama beach mouse.jpg\",\"layer\":0,\"message_type\":\"asset_created\",\"pivot_point\":{\"x\":536.471618652344,\"y\":285.077941894531},\"position\":{\"x\":488.386627197266,\"y\":212.577835083008},\"rotation\":0,\"size\":{\"x\":96.1700134277344,\"y\":145.000228881836},\"type\":\"f2cb4aaf-0572-db1f-fb31-b69820c9d3ad\",\"uuid\":\"f2cb4aaf-0572-db1f-fb31-b69820c9d3ad\"}";
+                            OutgoingQueue.Push(outgoingPacket);
+                        }
+                        {
+                            OutgoingNetworkPacket outgoingPacket;
+                            outgoingPacket.Connection = incomingPacket->Connection;
+                            outgoingPacket.Payload = "{\"description\":\"null\",\"image_path\":\"res://assets/animals/raccoon.jpg\",\"layer\":0,\"message_type\":\"asset_created\",\"pivot_point\":{\"x\":877.354370117188,\"y\":97.6569137573242},\"position\":{\"x\":768.603759765625,\"y\":25.156867980957},\"rotation\":0,\"size\":{\"x\":217.501159667969,\"y\":145.000091552734},\"type\":\"1e011ba5-2a19-44f5-76c5-d59336201bf2\",\"uuid\":\"1e011ba5-2a19-44f5-76c5-d59336201bf2\"}";
+                            OutgoingQueue.Push(outgoingPacket);
+                        }
+                        {
+                            OutgoingNetworkPacket outgoingPacket;
+                            outgoingPacket.Connection = incomingPacket->Connection;
+                            outgoingPacket.Payload = "{\"description\":\"null\",\"image_path\":\"res://assets/animals/short eared elephant shrew.jpg\",\"layer\":0,\"message_type\":\"asset_created\",\"pivot_point\":{\"x\":691.317138671875,\"y\":516.823852539063},\"position\":{\"x\":571.180236816406,\"y\":444.323791503906},\"rotation\":0,\"size\":{\"x\":240.273864746094,\"y\":145.000122070313},\"type\":\"395255a9-4c09-a02d-e128-256711d2936b\",\"uuid\":\"395255a9-4c09-a02d-e128-256711d2936b\"}";
+                            OutgoingQueue.Push(outgoingPacket);
+                        }
+                        {
+                            OutgoingNetworkPacket outgoingPacket;
+                            outgoingPacket.Connection = incomingPacket->Connection;
+                            outgoingPacket.Payload = "{\"description\":\"null\",\"image_path\":\"res://assets/animals/storm the bat.jpg\",\"layer\":0,\"message_type\":\"asset_created\",\"pivot_point\":{\"x\":869.351135253906,\"y\":348.039672851563},\"position\":{\"x\":796.851135253906,\"y\":275.539642333984},\"rotation\":0,\"size\":{\"x\":145.0,\"y\":145.000091552734},\"type\":\"7978b7f2-e787-a6f2-287f-4f30dab2e05f\",\"uuid\":\"7978b7f2-e787-a6f2-287f-4f30dab2e05f\"}";
+                            OutgoingQueue.Push(outgoingPacket);
+                        }
+                        {
+                            OutgoingNetworkPacket outgoingPacket;
+                            outgoingPacket.Connection = incomingPacket->Connection;
+                            outgoingPacket.Payload = "{\"description\":\"null\",\"image_path\":\"res://assets/animals/angry hedgehog.png\",\"layer\":0,\"message_type\":\"asset_created\",\"pivot_point\":{\"x\":453.175628662109,\"y\":408.982574462891},\"position\":{\"x\":380.675415039063,\"y\":336.482513427734},\"rotation\":0,\"size\":{\"x\":145.000427246094,\"y\":145.000122070313},\"type\":\"3bb32320-d416-ab2c-032e-cb183c8d1fd1\",\"uuid\":\"3bb32320-d416-ab2c-032e-cb183c8d1fd1\"}";
+                            OutgoingQueue.Push(outgoingPacket);
+                        }
+                        {
+                            OutgoingNetworkPacket outgoingPacket;
+                            outgoingPacket.Connection = incomingPacket->Connection;
+                            outgoingPacket.Payload = "{\"description\":\"null\",\"image_path\":\"res://assets/animals/angry hedgehog.png\",\"layer\":0,\"message_type\":\"asset_created\",\"pivot_point\":{\"x\":764.13330078125,\"y\":274.171936035156},\"position\":{\"x\":691.633239746094,\"y\":201.671844482422},\"rotation\":0,\"size\":{\"x\":145.000061035156,\"y\":145.000152587891},\"type\":\"33df5312-81f1-d0b9-4b4f-d59cdd14737d\",\"uuid\":\"33df5312-81f1-d0b9-4b4f-d59cdd14737d\"}";
+                            OutgoingQueue.Push(outgoingPacket);
+                        }
+                    }
                 }
                 // These remaining message types are the ones to broadcast to all but sender.
                 else if (
