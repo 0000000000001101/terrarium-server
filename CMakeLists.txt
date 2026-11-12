@@ -31,6 +31,7 @@ add_executable(TerrariumServer
     src/NetworkingServer.hpp
     src/ThreadSafeQueue.cpp
     src/ThreadSafeQueue.hpp
+    src/Entity.hpp
 )
 
 target_include_directories(TerrariumServer PRIVATE
