@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
     try
     {
         Terrarium terrariumServer;
-        terrariumServer.Run("127.0.0.1", 8013);
+        terrariumServer.Run("0.0.0.0", 8013);
     }
     catch (const std::exception& e)
     {
