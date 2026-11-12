@@ -3,7 +3,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 
-#include "Server.hpp"
+#include "Terrarium.hpp"
 
 void initializeSpdlog()
 {
@@ -25,21 +25,21 @@ void initializeSpdlog()
     spdlog::set_default_logger(logger);
 }
 
-int main()
+int main(int argc, char* argv[])
 {
     initializeSpdlog();
 
-    spdlog::set_level(spdlog::level::trace);
+    spdlog::set_level(spdlog::level::debug);
     spdlog::info("Hello, world!");
 
     try
     {
-        Server server;
-        server.Run("127.0.0.1", 8013);
+        Terrarium terrariumServer;
+        terrariumServer.Run("0.0.0.0", 8013);
     }
     catch (const std::exception& e)
     {
-        spdlog::error("Server stopped: {}", e.what());
+        spdlog::error("Terrarium stopped: {}", e.what());
         return 1;
     }
 

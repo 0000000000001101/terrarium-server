@@ -25,8 +25,12 @@ endif()
 
 add_executable(TerrariumServer
     src/main.cpp
-    src/Server.cpp
-    src/Server.hpp
+    src/Terrarium.cpp
+    src/Terrarium.hpp
+    src/NetworkingServer.cpp
+    src/NetworkingServer.hpp
+    src/ThreadSafeQueue.cpp
+    src/ThreadSafeQueue.hpp
 )
 
 target_include_directories(TerrariumServer PRIVATE
