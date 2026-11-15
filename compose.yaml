@@ -1,0 +1,16 @@
+#
+services:
+  terrarium-server:
+    container_name: terrarium-server
+    # Option 1: Use container from GHCR.
+    image: ghcr.io/0000000000001101/terrarium-server:latest
+    # Option 2: Build the container locally from the Dockerfile and use it.
+    # build: .
+    #
+    ports:
+      - "8013:8013"
+    # environment:
+    #   - TEST="TEST"
+    #   - TEST=${TEST} # .env
+    volumes:
+      - "./build/data:/app"

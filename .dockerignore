@@ -8,6 +8,8 @@
 .dockerignore
 Dockerfile*
 docker-compose*
+compose*
+compose.*
 .ci
 ci/
 
