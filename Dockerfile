@@ -15,7 +15,7 @@ RUN cmake -S . -B /build \
     && cmake --build /build --parallel --target TerrariumServer
 
 FROM debian:trixie-slim AS runtime
-LABEL org.opencontainers.image.source https://github.com/0000000000001101/terrarium-server
+LABEL org.opencontainers.image.source="https://github.com/0000000000001101/terrarium-server"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libstdc++6 \
