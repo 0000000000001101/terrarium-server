@@ -18,6 +18,13 @@ struct OutgoingNetworkPacket
     bool IsBroadcast = false;
 };
 
+enum class QueueWaitResult
+{
+    Data, // Returned from QueueWait, because there is data to process.
+    Timeout, // Timeout has been hit. Wake up and do some periodic stuff.
+    Closed // Queue closed! Networking thread may be finished!
+};
+
 template <typename T>
 class ThreadSafeQueue
 {
@@ -66,6 +73,29 @@ public:
         // If closed but items remain, return true so they can be processed.
         return !InternalQueue.empty();
     }
+
+    // Waits until there is data, or until a timeout is hit.
+    template <typename Clock, typename Duration>
+    QueueWaitResult WaitUntil(std::chrono::time_point<Clock, Duration> deadline)
+    {
+        std::unique_lock<std::mutex> lock(QueueMutex);
+
+        const bool awakened = DataAvailable.wait_until(
+            lock,
+            deadline,
+            [this]
+            {
+                return Closed || !InternalQueue.empty();
+            });
+
+        if (!awakened)
+            return QueueWaitResult::Timeout;
+
+        if (!InternalQueue.empty())
+            return QueueWaitResult::Data;
+
+        return QueueWaitResult::Closed;
+    };
 
     // Stops accepting items into the queue, and wakes anyone waiting for data.
     void Close()

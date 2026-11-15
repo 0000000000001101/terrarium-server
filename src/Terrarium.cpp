@@ -22,11 +22,23 @@ void Terrarium::Run(const char *ipAddress, const std::uint16_t &port)
     // Load existing scene (if exists).
     DeserializeScene();
 
-    // bool serverRunning = true;
-    while (IncomingQueue.WaitForData())
+    while (true)
     {
-        // spdlog::trace("Tick!");
-        ProcessAllMessages();
+        // If we have multiple tasks to do periodically, we could make a scheduler for them.
+        // Then this like of code would be something like scheduler.NextDeadline() if one exists. Else, stay waiting for data.
+        // Then when we hit the timeout, we can run scheduler.RunDue().
+        std::chrono::steady_clock::time_point nextTimeout = std::chrono::steady_clock::now() + std::chrono::minutes(5);
+        QueueWaitResult result = IncomingQueue.WaitUntil(nextTimeout);
+
+        if (result == QueueWaitResult::Closed)
+            break;
+        else if (result == QueueWaitResult::Data)
+            ProcessAllMessages();
+        else if (result == QueueWaitResult::Timeout)
+            SerializeScene();
+        else
+            throw std::exception("what");
+
         // After we queue up our messages, we should tell the server to flush it, to send our messages. Messages are thus batched! :D
         NetworkServer.RequestQueueFlush();
     }
@@ -197,6 +209,8 @@ void Terrarium::ProcessAllMessages()
 
 void Terrarium::SerializeScene()
 {
+    spdlog::info("Saving scene...");
+
     YAML::Node root(YAML::NodeType::Sequence);
 
     for (const auto& [key, entity] : SceneEntities)
@@ -227,6 +241,7 @@ void Terrarium::SerializeScene()
 
 void Terrarium::DeserializeScene()
 {
+    spdlog::info("Loading scene...");
     try
     {
         YAML::Node root = YAML::LoadFile("Scene.yaml");
@@ -259,6 +274,6 @@ void Terrarium::DeserializeScene()
     }
     catch (const YAML::Exception& e)
     {
-        spdlog::error("Failed to load Scene.yaml: {}", e.what());
+        spdlog::warn("Failed to load Scene.yaml: {}", e.what());
     }
 }
