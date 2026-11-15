@@ -13,4 +13,4 @@ services:
     #   - TEST="TEST"
     #   - TEST=${TEST} # .env
     volumes:
-      - "./build/data:/app"
+      - "./build/data:/app/data"
