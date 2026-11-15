@@ -1,0 +1,80 @@
+# Version Control
+.git
+.gitignore
+.gitattributes
+.github
+
+# Docker & CI/CD
+.dockerignore
+Dockerfile*
+docker-compose*
+.ci
+ci/
+
+# CMake & Local Build Directories
+build/
+build-*/
+cmake-build-*/
+out/
+dist/
+install/
+_deps/
+
+# CMake Generated Files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+install_manifest.txt
+CTestTestfile.cmake
+compile_commands.json
+
+# C++ Compiled Objects & Binaries
+*.o
+*.obj
+*.lo
+*.la
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.out
+*.app
+*.pdb
+*.gch
+*.pch
+
+# Package Managers & Local Caches
+.cache/
+.ccache/
+vcpkg_installed/
+conan/
+
+# IDEs & Text Editors
+.vscode/
+.vs/
+.idea/
+.kdev4/
+*.kdev4
+*.swp
+*.swo
+*~
+*.user
+*.suo
+*.sln
+*.vcxproj*
+
+# Documentation & Misc
+docs/
+*.md
+LICENSE
+.clang-format
+.clang-tidy
+*.log
+.env*
+
+logs/
+tests/
