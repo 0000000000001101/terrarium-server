@@ -1,8 +1,10 @@
 FROM debian:trixie-slim AS build
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
     build-essential \
     cmake \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src
