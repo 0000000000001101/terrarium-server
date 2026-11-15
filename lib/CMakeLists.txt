@@ -77,3 +77,15 @@ target_compile_definitions(websocketpp_headers INTERFACE
 target_include_directories(websocketpp_headers SYSTEM INTERFACE "${websocketpp_SOURCE_DIR}")
 target_link_libraries(websocketpp_headers INTERFACE asio_target)
 add_library(websocketpp::websocketpp ALIAS websocketpp_headers)
+
+#- YAML ---------------------------------------------------------------------
+
+FetchContent_Declare(
+    yaml-cpp
+    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+    GIT_TAG        yaml-cpp-0.9.0
+    GIT_SHALLOW    TRUE
+    GIT_PROGRESS   TRUE
+)
+
+FetchContent_MakeAvailable(yaml-cpp)

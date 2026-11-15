@@ -50,6 +50,9 @@ void NetworkingServer::Run(const char* ipAddress, const std::uint16_t& port)
     // Runs the ASIO event loop, processes network stuff and dispatches things to callbacks.
     // This is a blocking call.
     Endpoint.run();
+
+    // If we got here, ASIO must have closed... Close the queue to wake up the main thread!
+    IncomingQueue.Close();
 }
 
 void NetworkingServer::Stop()
@@ -59,6 +62,7 @@ void NetworkingServer::Stop()
     // TODO: Close all connections? stop_listening does not close them.
     // Check WebSocket++ docs.
     // ...
+    ActiveConnections.clear();
 
     Endpoint.stop();
 }

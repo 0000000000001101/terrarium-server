@@ -12,6 +12,10 @@ public:
     virtual ~Terrarium() = default;
 
     void Run(const char* ipAddress, const std::uint16_t& port);
+    void ProcessAllMessages();
+
+    void SerializeScene();
+    void DeserializeScene();
 
 private:
     ThreadSafeQueue<IncomingNetworkPacket> IncomingQueue;
