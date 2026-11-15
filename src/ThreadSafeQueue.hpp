@@ -4,6 +4,7 @@
 #include <mutex>
 #include <queue>
 #include <optional>
+#include <condition_variable>
 
 struct IncomingNetworkPacket
 {

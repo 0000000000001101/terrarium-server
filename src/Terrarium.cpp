@@ -37,7 +37,7 @@ void Terrarium::Run(const char *ipAddress, const std::uint16_t &port)
         else if (result == QueueWaitResult::Timeout)
             SerializeScene();
         else
-            throw std::exception("what");
+            throw std::runtime_error("what");
 
         // After we queue up our messages, we should tell the server to flush it, to send our messages. Messages are thus batched! :D
         NetworkServer.RequestQueueFlush();
