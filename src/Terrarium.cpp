@@ -229,7 +229,8 @@ void Terrarium::SerializeScene()
         return;
     }
 
-    std::ofstream outf{"Scene.yaml"};
+    std::filesystem::create_directory("data");
+    std::ofstream outf{"data/Scene.yaml"};
     if (!outf)
     {
         spdlog::error("Failed to open Scene.yaml for saving!");
@@ -244,7 +245,7 @@ void Terrarium::DeserializeScene()
     spdlog::info("Loading scene...");
     try
     {
-        YAML::Node root = YAML::LoadFile("Scene.yaml");
+        YAML::Node root = YAML::LoadFile("data/Scene.yaml");
         SceneEntities.clear();
 
         if (root.IsMap())
