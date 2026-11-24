@@ -68,19 +68,18 @@ void Terrarium::ProcessAllMessages()
             nlohmann::json jsonMessage = nlohmann::json::parse(incomingPacket->Payload);
             std::string messageType = jsonMessage.at("message_type").get<std::string>();
 
+            // NOTE: Need new message_type!
+            // One to tell the clients to delete the whole scene rather than the server telling it to delete individual things.
+            // Useful when the state is not properly synced, and then we can load scenes from files and refresh clients easily.
+            // Another useful message_type would be one to batch send a whole scene. Instead of using `asset_created`, we could
+            // use a JSON list to send over everything at once.
+
             if (messageType == "meow")
             {
                 OutgoingNetworkPacket outgoingPacket;
                 outgoingPacket.Connection = incomingPacket->Connection;
                 outgoingPacket.Payload = "meow :3";
                 OutgoingQueue.Push(outgoingPacket);
-                SerializeScene();
-                DeserializeScene();
-                // NOTE: Need new message_type!
-                // One to tell the clients to delete the whole scene rather than the server telling it to delete individual things.
-                // Useful when the state is not properly synced, and then we can load scenes from files and refresh clients easily.
-                // Another useful message_type would be one to batch send a whole scene. Instead of using `asset_created`, we could
-                // use a JSON list to send over everything at once.
             }
             else if (messageType == "request_state")
             {
@@ -106,11 +105,23 @@ void Terrarium::ProcessAllMessages()
                     OutgoingQueue.Push(outgoingPacket);
                 }
             }
+            else if (messageType == "asset_deleted")
+            {
+                std::string targetUUID = jsonMessage.at("uuid").get<std::string>();
+                spdlog::debug("Deleting asset with UUID: `{}`", targetUUID);
+                SceneEntities.erase(targetUUID);
+
+                // Send the received packet to others.
+                OutgoingNetworkPacket outgoingPacket;
+                outgoingPacket.Connection = incomingPacket->Connection;
+                outgoingPacket.Payload = incomingPacket->Payload;
+                outgoingPacket.IsBroadcast = true;
+                OutgoingQueue.Push(outgoingPacket);
+            }
             // These remaining message types are the ones to broadcast to all but sender.
             else if (
                 messageType == "glass_selected" ||
                 messageType == "asset_created" ||
-                messageType == "asset_deleted" ||
                 messageType == "asset_layer_reordered" ||
                 messageType == "asset_moved" ||
                 messageType == "asset_resized" ||
