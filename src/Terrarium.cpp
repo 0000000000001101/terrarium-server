@@ -1,6 +1,7 @@
 #include "Terrarium.hpp"
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
+#include <fstream>
 
 Terrarium::Terrarium()
     : NetworkServer(IncomingQueue, OutgoingQueue)
@@ -18,141 +19,28 @@ void Terrarium::Run(const char *ipAddress, const std::uint16_t &port)
         }
     );
 
-    // Main game loop.
-    const int TICK_RATE = 60;
-    const auto MS_PER_TICK = std::chrono::milliseconds(1000 / TICK_RATE);
+    // Load existing scene (if exists).
+    DeserializeScene();
 
-    bool serverRunning = true;
-    while (serverRunning)
+    while (true)
     {
-        auto tickStart = std::chrono::steady_clock::now();
-        // spdlog::trace("Tick!");
+        // If we have multiple tasks to do periodically, we could make a scheduler for them.
+        // Then this like of code would be something like scheduler.NextDeadline() if one exists. Else, stay waiting for data.
+        // Then when we hit the timeout, we can run scheduler.RunDue().
+        std::chrono::steady_clock::time_point nextTimeout = std::chrono::steady_clock::now() + std::chrono::minutes(5);
+        QueueWaitResult result = IncomingQueue.WaitUntil(nextTimeout);
 
-        // Process all incoming messages.
-        while (std::optional<IncomingNetworkPacket> incomingPacket = IncomingQueue.Pop())
-        {
-            try
-            {
-                nlohmann::json json = nlohmann::json::parse(incomingPacket->Payload);
-                std::string message_type = json.at("message_type").get<std::string>();
-
-                if (message_type == "meow")
-                {
-                    OutgoingNetworkPacket outgoingPacket;
-                    outgoingPacket.Connection = incomingPacket->Connection;
-                    outgoingPacket.Payload = "meow :3";
-                    OutgoingQueue.Push(outgoingPacket);
-                }
-                else if (message_type == "request_state")
-                {
-                    // TODO: Send real state.
-
-                    // Test state.
-                    if (true)
-                    {
-                        {
-                            OutgoingNetworkPacket outgoingPacket;
-                            outgoingPacket.Connection = incomingPacket->Connection;
-                            outgoingPacket.Payload = "{\"description\":\"null\",\"image_path\":\"res://assets/animals/angry hedgehog.png\",\"layer\":0,\"message_type\":\"asset_created\",\"pivot_point\":{\"x\":469.229614257813,\"y\":141.178894042969},\"position\":{\"x\":396.729125976563,\"y\":68.6788330078125},\"rotation\":0,\"size\":{\"x\":145.0009765625,\"y\":145.000122070313},\"type\":\"2f6075b6-3303-6755-68e1-e89f6b0113f6\",\"uuid\":\"2f6075b6-3303-6755-68e1-e89f6b0113f6\"}";
-                            OutgoingQueue.Push(outgoingPacket);
-                        }
-                        {
-                            OutgoingNetworkPacket outgoingPacket;
-                            outgoingPacket.Connection = incomingPacket->Connection;
-                            outgoingPacket.Payload = "{\"description\":\"null\",\"image_path\":\"res://assets/animals/alabama beach mouse.jpg\",\"layer\":0,\"message_type\":\"asset_created\",\"pivot_point\":{\"x\":536.471618652344,\"y\":285.077941894531},\"position\":{\"x\":488.386627197266,\"y\":212.577835083008},\"rotation\":0,\"size\":{\"x\":96.1700134277344,\"y\":145.000228881836},\"type\":\"f2cb4aaf-0572-db1f-fb31-b69820c9d3ad\",\"uuid\":\"f2cb4aaf-0572-db1f-fb31-b69820c9d3ad\"}";
-                            OutgoingQueue.Push(outgoingPacket);
-                        }
-                        {
-                            OutgoingNetworkPacket outgoingPacket;
-                            outgoingPacket.Connection = incomingPacket->Connection;
-                            outgoingPacket.Payload = "{\"description\":\"null\",\"image_path\":\"res://assets/animals/raccoon.jpg\",\"layer\":0,\"message_type\":\"asset_created\",\"pivot_point\":{\"x\":877.354370117188,\"y\":97.6569137573242},\"position\":{\"x\":768.603759765625,\"y\":25.156867980957},\"rotation\":0,\"size\":{\"x\":217.501159667969,\"y\":145.000091552734},\"type\":\"1e011ba5-2a19-44f5-76c5-d59336201bf2\",\"uuid\":\"1e011ba5-2a19-44f5-76c5-d59336201bf2\"}";
-                            OutgoingQueue.Push(outgoingPacket);
-                        }
-                        {
-                            OutgoingNetworkPacket outgoingPacket;
-                            outgoingPacket.Connection = incomingPacket->Connection;
-                            outgoingPacket.Payload = "{\"description\":\"null\",\"image_path\":\"res://assets/animals/short eared elephant shrew.jpg\",\"layer\":0,\"message_type\":\"asset_created\",\"pivot_point\":{\"x\":691.317138671875,\"y\":516.823852539063},\"position\":{\"x\":571.180236816406,\"y\":444.323791503906},\"rotation\":0,\"size\":{\"x\":240.273864746094,\"y\":145.000122070313},\"type\":\"395255a9-4c09-a02d-e128-256711d2936b\",\"uuid\":\"395255a9-4c09-a02d-e128-256711d2936b\"}";
-                            OutgoingQueue.Push(outgoingPacket);
-                        }
-                        {
-                            OutgoingNetworkPacket outgoingPacket;
-                            outgoingPacket.Connection = incomingPacket->Connection;
-                            outgoingPacket.Payload = "{\"description\":\"null\",\"image_path\":\"res://assets/animals/storm the bat.jpg\",\"layer\":0,\"message_type\":\"asset_created\",\"pivot_point\":{\"x\":869.351135253906,\"y\":348.039672851563},\"position\":{\"x\":796.851135253906,\"y\":275.539642333984},\"rotation\":0,\"size\":{\"x\":145.0,\"y\":145.000091552734},\"type\":\"7978b7f2-e787-a6f2-287f-4f30dab2e05f\",\"uuid\":\"7978b7f2-e787-a6f2-287f-4f30dab2e05f\"}";
-                            OutgoingQueue.Push(outgoingPacket);
-                        }
-                        {
-                            OutgoingNetworkPacket outgoingPacket;
-                            outgoingPacket.Connection = incomingPacket->Connection;
-                            outgoingPacket.Payload = "{\"description\":\"null\",\"image_path\":\"res://assets/animals/angry hedgehog.png\",\"layer\":0,\"message_type\":\"asset_created\",\"pivot_point\":{\"x\":453.175628662109,\"y\":408.982574462891},\"position\":{\"x\":380.675415039063,\"y\":336.482513427734},\"rotation\":0,\"size\":{\"x\":145.000427246094,\"y\":145.000122070313},\"type\":\"3bb32320-d416-ab2c-032e-cb183c8d1fd1\",\"uuid\":\"3bb32320-d416-ab2c-032e-cb183c8d1fd1\"}";
-                            OutgoingQueue.Push(outgoingPacket);
-                        }
-                        {
-                            OutgoingNetworkPacket outgoingPacket;
-                            outgoingPacket.Connection = incomingPacket->Connection;
-                            outgoingPacket.Payload = "{\"description\":\"null\",\"image_path\":\"res://assets/animals/angry hedgehog.png\",\"layer\":0,\"message_type\":\"asset_created\",\"pivot_point\":{\"x\":764.13330078125,\"y\":274.171936035156},\"position\":{\"x\":691.633239746094,\"y\":201.671844482422},\"rotation\":0,\"size\":{\"x\":145.000061035156,\"y\":145.000152587891},\"type\":\"33df5312-81f1-d0b9-4b4f-d59cdd14737d\",\"uuid\":\"33df5312-81f1-d0b9-4b4f-d59cdd14737d\"}";
-                            OutgoingQueue.Push(outgoingPacket);
-                        }
-                    }
-                }
-                // These remaining message types are the ones to broadcast to all but sender.
-                else if (
-                    message_type == "glass_selected" ||
-                    message_type == "asset_created" ||
-                    message_type == "asset_deleted" ||
-                    message_type == "asset_layer_reordered" ||
-                    message_type == "asset_moved" ||
-                    message_type == "asset_resized" ||
-                    message_type == "asset_rotated"
-                )
-                {
-                    // TODO: Update state of tracked assets/entities.
-
-                    OutgoingNetworkPacket outgoingPacket;
-                    outgoingPacket.Connection = incomingPacket->Connection;
-                    outgoingPacket.Payload = incomingPacket->Payload;
-                    outgoingPacket.IsBroadcast = true;
-                    OutgoingQueue.Push(outgoingPacket);
-                }
-                else
-                {
-                    spdlog::warn("Invalid message_type recieved! How do I handle \"{}\"?", message_type);
-                }
-            }
-            catch(const nlohmann::json::parse_error& e)
-            {
-                spdlog::warn("JSON parse error:\n\t\"{}\"", e.what());
-                spdlog::warn("Could not parse message as JSON! Discarding message...");
-            }
-            catch(const std::out_of_range& e)
-            {
-                spdlog::warn("std::out_of_range:\n\t\"{}\"", e.what());
-                spdlog::warn("JSON message did not have a required key! Discarding...");
-            }
-            catch(const nlohmann::json::type_error& e)
-            {
-                spdlog::warn("nlohmann::json::type_error:\n\t\"{}\"", e.what());
-                spdlog::warn("A key returned an unexpected value type! Discarding...");
-            }
-            catch(const std::exception& e)
-            {
-                spdlog::warn("std::exception:\n\t\"{}\"", e.what());
-            }
-        }
-        // After we queue up our messages, we should tell the server to flush it, to send our messages. Messages are batched! :D
-        NetworkServer.RequestQueueFlush();
-
-        // Terrarium Server logic.
-        // So after dealing with all messages this tick, what do we need to do?
-        // Maybe every once in a while, we save the canvas from memory to disk? Offload canvases which aren't active anymore?
-        // If this was like other games, things like updating entity positions and physics would be done.
-
-        // Tick rate limiter.
-        auto tickEnd = std::chrono::steady_clock::now();
-        auto tickDuration = tickEnd - tickStart;
-        if (tickDuration < MS_PER_TICK)
-            std::this_thread::sleep_for(MS_PER_TICK - tickDuration);
+        if (result == QueueWaitResult::Closed)
+            break;
+        else if (result == QueueWaitResult::Data)
+            ProcessAllMessages();
+        else if (result == QueueWaitResult::Timeout)
+            SerializeScene();
         else
-            spdlog::warn("Terrarium Server running {}ms behind! That time will not be made up.", (tickDuration - MS_PER_TICK).count());
+            throw std::runtime_error("what");
+
+        // After we queue up our messages, we should tell the server to flush it, to send our messages. Messages are thus batched! :D
+        NetworkServer.RequestQueueFlush();
     }
 
     NetworkServer.Stop();
@@ -165,4 +53,239 @@ void Terrarium::Run(const char *ipAddress, const std::uint16_t &port)
     }
     else
         spdlog::error("Network thread is not joinable? What happened?");
+
+    // Save current scene.
+    SerializeScene();
+}
+
+void Terrarium::ProcessAllMessages()
+{
+    // Process all incoming messages.
+    while (std::optional<IncomingNetworkPacket> incomingPacket = IncomingQueue.Pop())
+    {
+        try
+        {
+            nlohmann::json jsonMessage = nlohmann::json::parse(incomingPacket->Payload);
+            std::string messageType = jsonMessage.at("message_type").get<std::string>();
+
+            // NOTE: Need new message_type!
+            // One to tell the clients to delete the whole scene rather than the server telling it to delete individual things.
+            // Useful when the state is not properly synced, and then we can load scenes from files and refresh clients easily.
+            // Another useful message_type would be one to batch send a whole scene. Instead of using `asset_created`, we could
+            // use a JSON list to send over everything at once.
+
+            if (messageType == "meow")
+            {
+                OutgoingNetworkPacket outgoingPacket;
+                outgoingPacket.Connection = incomingPacket->Connection;
+                outgoingPacket.Payload = "meow :3";
+                OutgoingQueue.Push(outgoingPacket);
+            }
+            else if (messageType == "request_state")
+            {
+                for (const auto& entity : SceneEntities)
+                {
+                    OutgoingNetworkPacket outgoingPacket;
+                    outgoingPacket.Connection = incomingPacket->Connection;
+                    nlohmann::json payload = {
+                        {"message_type", "asset_created"},
+                        {"uuid", entity.second.UUID},
+                        {"name", entity.second.name},
+                        {"type", entity.second.type},
+                        {"image_path", entity.second.image_path},
+                        {"description", entity.second.description},
+                        {"position", {{"x", entity.second.position.x}, {"y", entity.second.position.y}}},
+                        {"size", {{"x", entity.second.size.x}, {"y", entity.second.size.y}}},
+                        {"layer", entity.second.layer},
+                        {"rotation", entity.second.rotation},
+                        {"pivot_point", {{"x", entity.second.pivot_point.x}, {"y", entity.second.pivot_point.y}}}
+                    };
+                    spdlog::debug("Sending: {}", payload.dump());
+                    outgoingPacket.Payload = payload.dump();
+                    OutgoingQueue.Push(outgoingPacket);
+                }
+            }
+            else if (messageType == "asset_deleted")
+            {
+                std::string targetUUID = jsonMessage.at("uuid").get<std::string>();
+                spdlog::debug("Deleting asset with UUID: `{}`", targetUUID);
+                SceneEntities.erase(targetUUID);
+
+                // Send the received packet to others.
+                OutgoingNetworkPacket outgoingPacket;
+                outgoingPacket.Connection = incomingPacket->Connection;
+                outgoingPacket.Payload = incomingPacket->Payload;
+                outgoingPacket.IsBroadcast = true;
+                OutgoingQueue.Push(outgoingPacket);
+            }
+            // These remaining message types are the ones to broadcast to all but sender.
+            else if (
+                messageType == "glass_selected" ||
+                messageType == "asset_created" ||
+                messageType == "asset_layer_reordered" ||
+                messageType == "asset_moved" ||
+                messageType == "asset_resized" ||
+                messageType == "asset_rotated"
+            )
+            {
+                std::string targetUUID = jsonMessage.at("uuid").get<std::string>();
+                SceneEntities[targetUUID].UUID = targetUUID;
+                for (auto& [key, value] : jsonMessage.items())
+                {
+                    spdlog::debug("Key: `{}` Value `{}`", key, value.dump());
+
+                    if (key == "name")
+                    {
+                        SceneEntities[targetUUID].name = value.get<std::string>();
+                    }
+                    else if (key == "type")
+                    {
+                        SceneEntities[targetUUID].type = value.get<std::string>();
+                    }
+                    else if (key == "image_path")
+                    {
+                        SceneEntities[targetUUID].image_path = value.get<std::string>();
+                    }
+                    else if (key == "description")
+                    {
+                        SceneEntities[targetUUID].description = value.get<std::string>();
+                    }
+                    else if (key == "position")
+                    {
+                        SceneEntities[targetUUID].position.x = value["x"].get<float>();
+                        SceneEntities[targetUUID].position.y = value["y"].get<float>();
+                    }
+                    else if (key == "size")
+                    {
+                        SceneEntities[targetUUID].size.x = value["x"].get<float>();
+                        SceneEntities[targetUUID].size.y = value["y"].get<float>();
+                    }
+                    else if (key == "layer")
+                    {
+                        SceneEntities[targetUUID].layer = value.get<int>();
+                    }
+                    else if (key == "rotation")
+                    {
+                        SceneEntities[targetUUID].rotation = value.get<float>();
+                    }
+                    else if (key == "pivot_point")
+                    {
+                        SceneEntities[targetUUID].pivot_point.x = value["x"].get<float>();
+                        SceneEntities[targetUUID].pivot_point.y = value["y"].get<float>();
+                    }
+                    else if (key == "message_type" || key == "uuid")
+                    {
+                        // Ignore these keys.
+                        // This `else if` prevents us from logging "unexpected" keys in the `else` block below.
+                    }
+                    else
+                    {
+                        spdlog::warn("Unexpected key found in JSON message! Key: `{}` Value: `{}`", key, value.dump());
+                    }
+                }
+
+                // Send the received packet to others. Thus, only sending the changes.
+                OutgoingNetworkPacket outgoingPacket;
+                outgoingPacket.Connection = incomingPacket->Connection;
+                outgoingPacket.Payload = incomingPacket->Payload;
+                outgoingPacket.IsBroadcast = true;
+                OutgoingQueue.Push(outgoingPacket);
+            }
+            else
+            {
+                spdlog::warn("Invalid message_type recieved! How do I handle \"{}\"?", messageType);
+            }
+        }
+        catch(const nlohmann::json::parse_error& e)
+        {
+            spdlog::warn("JSON parse error:\n\t\"{}\"", e.what());
+            spdlog::warn("Could not parse message as JSON! Discarding message...");
+        }
+        catch(const std::out_of_range& e)
+        {
+            spdlog::warn("std::out_of_range:\n\t\"{}\"", e.what());
+            spdlog::warn("JSON message did not have a required key! Discarding...");
+        }
+        catch(const nlohmann::json::type_error& e)
+        {
+            spdlog::warn("nlohmann::json::type_error:\n\t\"{}\"", e.what());
+            spdlog::warn("A key returned an unexpected value type! Discarding...");
+        }
+        catch(const std::exception& e)
+        {
+            spdlog::warn("std::exception:\n\t\"{}\"", e.what());
+        }
+    }
+}
+
+void Terrarium::SerializeScene()
+{
+    spdlog::info("Saving scene...");
+
+    YAML::Node root(YAML::NodeType::Sequence);
+
+    for (const auto& [key, entity] : SceneEntities)
+    {
+        root.push_back(entity);
+    }
+
+    YAML::Emitter emitter;
+    emitter.SetSeqFormat(YAML::Block);
+    emitter.SetMapFormat(YAML::Block);
+    emitter << root;
+
+    if (!emitter.good())
+    {
+        spdlog::error("YAML emit failed: {}", emitter.GetLastError());
+        return;
+    }
+
+    std::filesystem::create_directory("data");
+    std::ofstream outf{"data/Scene.yaml"};
+    if (!outf)
+    {
+        spdlog::error("Failed to open Scene.yaml for saving!");
+        return;
+    }
+
+    outf << emitter.c_str() << '\n';
+}
+
+void Terrarium::DeserializeScene()
+{
+    spdlog::info("Loading scene...");
+    try
+    {
+        YAML::Node root = YAML::LoadFile("data/Scene.yaml");
+        SceneEntities.clear();
+
+        if (root.IsMap())
+        {
+            // Map format: UUID key -> Entity value
+            for (const auto& entry : root)
+            {
+                const std::string id = entry.first.as<std::string>();
+                Entity entity = entry.second.as<Entity>();
+                SceneEntities[id] = entity;
+            }
+        }
+        else if (root.IsSequence())
+        {
+            // Sequence format: list of Entity values
+            for (const auto& node : root)
+            {
+                Entity entity = node.as<Entity>();
+                const std::string id = entity.UUID;
+                SceneEntities[id] = entity;
+            }
+        }
+        else
+        {
+            spdlog::error("Scene.yaml root must be a map or a sequence!");
+        }
+    }
+    catch (const YAML::Exception& e)
+    {
+        spdlog::warn("Failed to load Scene.yaml: {}", e.what());
+    }
 }

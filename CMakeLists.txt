@@ -31,6 +31,7 @@ add_executable(TerrariumServer
     src/NetworkingServer.hpp
     src/ThreadSafeQueue.cpp
     src/ThreadSafeQueue.hpp
+    src/Entity.hpp
 )
 
 target_include_directories(TerrariumServer PRIVATE
@@ -78,5 +79,6 @@ add_subdirectory(lib)
 target_link_libraries(TerrariumServer PRIVATE spdlog::spdlog)
 target_link_libraries(TerrariumServer PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(TerrariumServer PRIVATE websocketpp::websocketpp)
+target_link_libraries(TerrariumServer PRIVATE yaml-cpp::yaml-cpp)
 
 # TODO: CTest
